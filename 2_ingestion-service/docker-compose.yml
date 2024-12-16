@@ -1,0 +1,36 @@
+networks:
+  # Available for database connections
+  data-network:
+  # Available for inter-service connections
+  service-network:
+
+volumes:
+  data_timescale:
+
+services:
+  timescaledb:
+    extends:
+      service: timescaledb
+      file: ../0_database/docker-compose.yml
+
+  # No Ports needed: only called from inside the docker network
+  # No Volumes needed: does not persist data to volume, uses DB
+  ingestion-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        INGESTION_PORT: "${INGESTION_PORT:-8089}"
+    env_file: ../.env
+    networks:
+      data-network:
+      service-network:
+    healthcheck:
+      test: [ "CMD-SHELL", "/usr/local/bin/healthcheck.sh" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    ports:
+      - "${INGESTION_PORT:-8089}:8089/udp"
+    volumes:
+      - ./healthcheck.sh:/usr/local/bin/healthcheck.sh

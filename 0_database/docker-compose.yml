@@ -1,0 +1,26 @@
+networks:
+  data-network:
+
+volumes:
+  data_timescale:
+
+services:
+  # Database Dependency
+  # TODO: In Production Environment use timescaledb-ha
+  timescaledb:
+    image: timescale/timescaledb:latest-pg17
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    env_file: ../.env
+    healthcheck:
+      # Can't use Environment variables in healthcheck, so using script instead
+      test: ["CMD", "/bin/bash", "/usr/local/bin/healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      data-network:
+    volumes:
+      - data_timescale:/var/lib/postgresql/data
+      - ./healthcheck.sh:/usr/local/bin/healthcheck.sh

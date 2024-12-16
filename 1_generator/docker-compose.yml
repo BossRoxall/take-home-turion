@@ -1,0 +1,14 @@
+networks:
+  # Only needs access to other services, not the database
+  service-network:
+
+services:
+  # No Ports needed: nothing calls this service
+  # No Volumes needed: does not persist data
+  generator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: ../.env
+    networks:
+      service-network:

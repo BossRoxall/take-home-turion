@@ -1,0 +1,12 @@
+{
+  "extends": "fastify-tsconfig",
+  "include": ["src/**/*"],
+  "compilerOptions": {
+    "outDir": "dist",
+    "allowJs": true,
+    "esModuleInterop": true,
+    "removeComments": true,
+    "skipLibCheck": true,
+    "strict": true,
+  }
+}

@@ -1,0 +1,67 @@
+networks:
+  data-network:
+  service-network:
+
+volumes:
+  data_timescale:
+
+services:
+  # Database Dependency
+  # TODO: In Production Environment use timescaledb-ha
+  timescaledb:
+    extends:
+      service: timescaledb
+      file: 0_database/docker-compose.yml
+
+  migrations:
+    extends:
+      service: migrations
+      file: 0_migrations/docker-compose.yml
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+
+  ingestion-service:
+    extends:
+      service: ingestion-service
+      file: 2_ingestion-service/docker-compose.yml
+    depends_on:
+      # Ensure DB is online to accept connections
+      timescaledb:
+        condition: service_healthy
+      # Ensure DB has the required schemas
+      migrations:
+        condition: service_completed_successfully
+
+  # Requirements
+  generator:
+    extends:
+      service: generator
+      file: 1_generator/docker-compose.yml
+    depends_on:
+      # Ensure destination is online before sending payloads
+      ingestion-service:
+        condition: service_healthy
+
+  api-service:
+    extends:
+#      service: dev-api-service
+      service: prod-api-service
+      file: 3_api-service/docker-compose.yml
+    depends_on:
+      # Ensure DB is online to accept connections
+      timescaledb:
+        condition: service_healthy
+      # Ensure DB has the required schemas
+      migrations:
+        condition: service_completed_successfully
+
+  frontend-service:
+    extends:
+#      service: dev-frontend-service
+      service: prod-frontend-service
+      file: 4_frontend-service/docker-compose.yml
+    depends_on:
+      # Ensure API is online to accept requests => prefer service_healthy, but didn't complete healthcheck
+      api-service:
+        condition: service_started

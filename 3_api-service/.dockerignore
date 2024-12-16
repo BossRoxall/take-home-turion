@@ -1,0 +1,12 @@
+README.md
+.idea/
+node_modules
+build
+dist
+coverage
+.nyc_output
+.git
+.gitlab-ci.yml
+.env
+**/*.DS_Store
+npm-debug.log

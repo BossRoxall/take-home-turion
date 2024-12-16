@@ -1,0 +1,25 @@
+networks:
+  data-network:
+
+services:
+  migrations:
+    restart: "no" # Ensure the migration service exits after completion
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: ../.env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-admin}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-nimda}
+      - POSTGRES_HOSTNAME=${POSTGRES_HOST:-timescaledb}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_DB=${POSTGRES_DB:-telemetry}
+    entrypoint: >
+      migrate
+      -path /app/migrations
+      -database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOSTNAME}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable
+      up
+    networks:
+      data-network:
+    volumes:
+      - ./migrations:/app/migrations

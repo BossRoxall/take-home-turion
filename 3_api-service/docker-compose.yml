@@ -1,0 +1,35 @@
+networks:
+  data-network:
+  service-network:
+
+services:
+
+  # During development: hot reloading of source
+  dev-api-service: &base-api
+    build:
+      context: .
+      dockerfile: .docker/dev.Dockerfile
+      args:
+        API_PORT: "$API_PORT"
+    volumes:
+      - ./src:/app/src # Allow hot reloads
+    env_file: ../.env
+    ports:
+      - '${API_PORT:-3000}:3000'
+    networks:
+      data-network:
+      service-network:
+    # TODO: Healthcheck
+
+  # Test compiled code
+  prod-api-service:
+    <<: *base-api
+    build:
+      context: .
+      dockerfile: .docker/prod.Dockerfile
+      args:
+        API_PORT: "$API_PORT"
+    environment:
+      NODE_ENV: "production"
+    # Exclude mounted volumes from dev image
+    volumes: []

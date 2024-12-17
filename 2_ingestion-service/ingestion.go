@@ -61,9 +61,14 @@ func StartTelemetryServer() {
 	defer pool.Close()
 	log.Println("Connected to TimescaleDB")
 
+	ingestionPort, err := getAppPortFromEnv("INGESTION_PORT")
+	if err != nil {
+		log.Fatalf("Failed to extract ingestion port from ENV: %v", err)
+	}
+
 	// Start listening for UDP packets
 	addr := net.UDPAddr{
-		Port: getAppPortFromEnv("INGESTION_PORT"),
+		Port: ingestionPort,
 		IP:   net.ParseIP("0.0.0.0"),
 	}
 	conn, err := net.ListenUDP("udp", &addr)
@@ -111,8 +116,13 @@ func StartTelemetryServer() {
 
 // StartHealthCheckServer starts a UDP listener to respond to health check pings
 func StartHealthCheckServer() {
+	healthCheckPort, err := getAppPortFromEnv("HEALTHCHECK_PORT")
+	if err != nil {
+		log.Fatalf("Failed to extract healthcheck port from ENV: %v", err)
+	}
+
 	healthCheckAddress := net.UDPAddr{
-		Port: getAppPortFromEnv("HEALTHCHECK_PORT"),
+		Port: healthCheckPort,
 		IP:   net.ParseIP("0.0.0.0"),
 	}
 
@@ -147,18 +157,22 @@ func StartHealthCheckServer() {
 	}
 }
 
-func getAppPortFromEnv(portVariable string) (intPort int) {
+func getAppPortFromEnv(portVariable string) (int, error) {
 	// Read environment variables
 	appPort := os.Getenv(portVariable)
+
+	if appPort == "" {
+		return 0, fmt.Errorf("environment variable %s not set", portVariable)
+	}
 
 	// Convert the port string to an integer
 	intPort, err := strconv.Atoi(appPort)
 	if err != nil {
-		log.Fatalf("Error converting %s to integer: %v\n", portVariable, err)
+		return 0, fmt.Errorf("error converting %s to integer: %v", portVariable, err)
 	}
 	log.Printf("Extracted Port %s[%d] from environment\n", portVariable, intPort)
 
-	return
+	return intPort, nil
 }
 
 func getDatabaseConnectionString() string {

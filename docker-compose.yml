@@ -1,5 +1,6 @@
 networks:
   data-network:
+  performance-network:
   service-network:
 
 volumes:
@@ -65,3 +66,23 @@ services:
       # Ensure API is online to accept requests => prefer service_healthy, but didn't complete healthcheck
       api-service:
         condition: service_started
+
+  # Performance Testing
+#  http-to-udp-proxy:
+#    extends:
+#      service: http-to-udp-proxy
+#      file: 5_performance-tests/docker-compose.yml
+#    depends_on:
+#      # Ensure API is online to accept requests => prefer service_healthy, but didn't complete healthcheck
+#      ingestion-service:
+#        condition: service_healthy
+#
+#  influxdb:
+#    extends:
+#      service: influxdb
+#      file: 5_performance-tests/docker-compose.yml
+#
+#  grafana:
+#    extends:
+#      service: grafana
+#      file: 5_performance-tests/docker-compose.yml

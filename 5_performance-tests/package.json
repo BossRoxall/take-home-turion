@@ -1,0 +1,20 @@
+{
+  "name": "5_performance-tests",
+  "version": "1.0.0",
+  "description": "Directory to host the k6 performance test scripts",
+  "main": "k6_ingestion_test.js",
+  "scripts": {
+    "test": "k6 run --out influxdb=http://localhost:8086/k6db k6_ingestion_test.js "
+  },
+  "author": {
+    "name": "Ross Boxall",
+    "email": "Ross.A.Boxall@gmail.com"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "k6": "^0.0.0"
+  },
+  "devDependencies": {
+    "@types/k6": "^0.54.2"
+  }
+}

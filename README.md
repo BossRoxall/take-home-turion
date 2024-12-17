@@ -55,6 +55,36 @@ Once on the Dashboard, you should see data flowing to the database in real time.
 
 ---
 
+# Performance Test
+
+Performance Testing was done using:
+- K6
+- InfluxDB
+- Grafana
+
+## Ingestion Service 
+
+This required a Go HTTP -> UDP Proxy as K6 doesn't natively support UDP requests.
+
+Scenario:
+- 120 Virtual Users
+- Duration: 5 minutes
+
+Outcome:
+- No errors
+- 672,898 Total Requests
+- Requests per second
+  - Mean: 4.34 K
+  - Max: 5.45 K
+- HTTP Request Duration:
+  - Mean: 13.67 ms
+  - Median: 3.82 ms
+  - Max: 3.01s
+
+![Performance Image](./5_performance-tests/ingestionService.5m.png)
+
+---
+
 # Requirements
 
 ## Part 1: Telemetry Ingestion Service (Required)

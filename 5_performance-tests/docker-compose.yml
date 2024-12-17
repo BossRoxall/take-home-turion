@@ -1,0 +1,52 @@
+networks:
+  # Isolate these services (k6 => prometheus <=> grafana)
+  performance-network:
+  # Available for inter-service connections
+  service-network:
+
+services:
+  # No Ports needed: only called from inside the docker network
+  # No Volumes needed: does not persist data to volume, uses DB
+  http-to-udp-proxy:
+    build:
+      context: .
+      dockerfile: ingestion-service/Dockerfile
+      args:
+        PROXY_PORT: "${PROXY_PORT:-8091}"
+    env_file: ../.env
+    networks:
+      performance-network:
+      service-network:
+    ports:
+      - "${PROXY_PORT:-8091}:8091"
+
+  # Metric Dependencies
+  influxdb:
+    image: influxdb:1.8
+    container_name: influxdb
+    ports:
+      - "8086:8086" # InfluxDB HTTP API
+      - "8083:8083" # InfluxDB Admin UI
+    environment:
+      - INFLUXDB_DB=k6db       # Default database
+      - INFLUXDB_USER=admin    # Admin username
+      - INFLUXDB_PASSWORD=admin # Admin password
+    networks:
+      performance-network:
+#    volumes:
+#      - influxdb-data:/var/lib/influxdb
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    restart: unless-stopped
+    networks:
+      performance-network:
+#    volumes:
+#      - grafana-data:/var/lib/grafana
